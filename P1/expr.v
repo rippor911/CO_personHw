@@ -31,13 +31,12 @@ module expr(
 
     reg [1:0] state;
 
-    always @(posedge clk or clr) begin
+    always @(posedge clk or posedge clr) begin
         if(clr) begin
             state <= empty;
             out <= 1'b0;
         end else begin
-            case(state)
-            empty:
+            if(state == empty)
                 begin
                     if(in >= "0" && in <= "9") begin
                         state <= right;
@@ -46,7 +45,7 @@ module expr(
                         state <= error;
                     end
                 end
-            right:
+            else if (state == right)
                 begin
                     if(in == "+" || in == "*") begin
                         state <= sign;
@@ -56,11 +55,11 @@ module expr(
                         out <= 1'b0;                        
                     end
                 end
-            error:
+            else if (state == error)
                 begin
                     out <= 1'b0;
                 end
-            sign:
+            else if (state == sign)
                 begin
                     if(in >= "0" && in <= "9") begin
                         state <= right;
@@ -69,12 +68,6 @@ module expr(
                         state <= error;
                     end
                 end
-            default:
-                begin
-                    state <= error;
-                    out <= 1'b0;
-                end
-            endcase
         end
     end
 
