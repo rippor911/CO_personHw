@@ -23,14 +23,10 @@ module ext(
     input [1:0] EOp,
     output reg [31:0] ext
     );
-	 reg [7:0] i;
 	 reg [31:0] temp;
 	always @(*) begin
 		if (EOp == 2'b00) begin
-			ext[15:0] = imm[15:0];
-			for(i = 16 ; i <= 31 ; i = i + 1) begin
-				ext[i:i] = imm[15:15];
-			end
+			ext={{16{imm[15:15]}},imm[15:0]};
 		end else if (EOp == 2'b01) begin
 			ext[15:0] = imm[15:0];
 			ext[31:16] = 16'd0;
@@ -38,10 +34,7 @@ module ext(
 			ext[31:16] = imm[15:0];
 			ext[15:0] = 16'd0;			
 		end else if (EOp == 2'b11) begin 
-			temp[15:0] = imm[15:0];
-			for(i = 16 ; i <= 31 ; i = i + 1) begin
-				temp[i:i] = imm[15:15];
-			end
+			temp={{16{imm[15:15]}},imm[15:0]};
 			ext = temp<<2;
 		end
 	end
