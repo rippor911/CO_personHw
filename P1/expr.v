@@ -26,7 +26,7 @@ module expr(
     input clk,
     input clr,
     input [7:0] in,
-    output out
+    output reg out
     );
 
     reg [1:0] state;
