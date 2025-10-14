@@ -3,13 +3,22 @@ module alu(
     input [31:0] A,
     input [31:0] B,
     input [2:0] ALUOp,
-    output [31:0] C
-	);
-    assign C = (ALUOp == 3'b000) ? A + B :
-					(ALUOp == 3'b001) ? A - B :
-					(ALUOp == 3'b010) ? A & B :
-					(ALUOp == 3'b011) ? A | B :
-					(ALUOp == 3'b100) ? A >> B :
-					(ALUOp == 3'b101) ? $signed(A) >>> B :
-					32'd0;
+    output reg [31:0] C
+);
+    always @(*) begin
+        if (ALUOp == 3'b000) begin
+            C = A + B;
+        end else if (ALUOp == 3'b001) begin
+            C = A - B;
+        end else if (ALUOp == 3'b010) begin
+            C = A & B;
+        end else if (ALUOp == 3'b011) begin
+            C = A | B;
+        end else if (ALUOp == 3'b100) begin
+            C = A >> B ;
+        end else if (ALUOp == 3'b101) begin
+            C = $signed(A) >>> B;
+        end
+    end
+
 endmodule
