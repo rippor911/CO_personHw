@@ -12,13 +12,11 @@ li $s1,10 	#s1 = 10
 sw $t0,($sp)
 
 forIBegin:
-beq $t0,$s0,forIEnd
 li $t1,0	#c_in
 la $t2,array	
 
 #mul i
 forJBegin:
-bgt $t2,$sp,forJEnd
 lw $t3,($t2)	#t3 = array at t2
 mult $t3,$t0	#t3 = t3 * i
 mflo $t3
@@ -28,8 +26,7 @@ mflo $t1	#t1 = tmp / 10
 mfhi $t3	#t3 = tmp % 10
 sw $t3,($t2)
 addi $t2,$t2,4
-j forJBegin
-forJEnd:
+ble $t2,$sp,forJBegin
 
 setCIn:
 beqz $t1,next
@@ -39,22 +36,21 @@ mfhi $t3
 addi $sp,$sp,4
 sw $t3,($sp)
 j setCIn
+
 next:
 addi $t0,$t0,1
-j forIBegin
-forIEnd:
+ble $t0,$s0,forIBegin
 
-la $t2,array
-printBegin:
-bgt $t2,$sp,printEnd
-
-lw $a0,($t2)
+move $t2,$sp
 li $v0,1
-syscall
+la $s7,array
 
-addi $t2,$t2,4
-j printBegin
-printEnd:
+printBegin:
+lw $a0,($t2)
+syscall
+#next
+subi $t2,$t2,4
+bge $t2,$s7,printBegin
 
 li $v0,10
 syscall
