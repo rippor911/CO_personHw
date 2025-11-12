@@ -52,7 +52,7 @@ module mips(
     wire [2:0] memAdrChoose;
     wire [2:0] memWdataChoose;
     wire grfWE;
-    wire memWrite;
+    wire [2:0] memWrite;
     wire [4:0] rd1;
     wire [4:0] rd2;
     wire [4:0] wt;

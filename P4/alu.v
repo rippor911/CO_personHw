@@ -1,9 +1,4 @@
-`timescale 1ns / 1ps
-`define addu 6'd0
-`define subu 6'd1
-`define orr	6'd2
-`define lui 6'd3
-`define equ 6'd4
+`include "global.v"
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
 // Engineer: 
@@ -31,19 +26,19 @@ module alu(
     output reg [31:0] out
     );
 	always @(*) begin
-		if (aluOp == `addu) begin
+		if (aluOp == `aluAddu) begin
 			logicOutput = 0;
 			out = A + B;
-		end else if (aluOp == `subu) begin
+		end else if (aluOp == `aluSubu) begin
 			logicOutput = 0;
 			out = A - B;			
-		end else if (aluOp == `orr) begin
+		end else if (aluOp == `aluOr) begin
 			logicOutput = 0;
 			out = A | B;		
-		end else if (aluOp == `lui) begin
+		end else if (aluOp == `aluLui) begin
 			logicOutput = 0;
 			out = {B[15:0],A[15:0]};		
-		end else if (aluOp == `equ) begin
+		end else if (aluOp == `aluEqu) begin
 			if (A == B) begin
 				logicOutput = 1;
 			end else begin
