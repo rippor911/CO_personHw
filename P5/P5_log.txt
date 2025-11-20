@@ -1,0 +1,45 @@
+debug: aluLui
+
+update:lb
+
+debug:lb use signext
+
+debug:lb hazard
+
+debug: != `lb
+
+debug: &&
+
+debug:lb->都加载到低位
+
+update：改为有条件流水grfWE
+
+update：增加清空延迟槽信号flush
+
+debug：完善 flush 清除逻辑
+
+update：link 信号（）
+
+update：AI美化了顶层代码编写（史上雕花）
+
+update：向hazard_controller传入M_W_memOut
+
+debug：  $ time !!!!!!!!!!!!!!!!!!!!!!!
+
+debug：hazard\M_W_memOut 【31：0】
+
+update：mem【out of range】 = 0
+
+update：`load instruction：`global.v` -> `choose.v` -> `controller.v`(设置读取内存方式，地址计算方式) -> `consumer.v` （如果需要用GPR[rt]来算写入的寄存器，要记得 A_2 不是 0）
+
+->`producer.v`(如果希望使用顶层，归置为 0) -> `hazard_ctrl.v`（设置需要暂停的寄存器范围，注意一定要在括号里，一定要记得改D|E，一定要记得改1和2） -> `mips.v`（设置计算后的寄存器地址）
+
+update：lh、sh
+
+debug：lh、sh忘记加hazard相关
+
+debug：修改了lw、lb、lh在mem的逻辑为组合逻辑
+
+debug：修改了lh、lb的符号位扩展问题
+
+debug：mem组合逻辑改为阻塞赋值
