@@ -45,6 +45,14 @@ module npc(
 			end else begin
 				npc = pc + 32'd4;
 			end
+		end else if (mode == `pcBne) begin
+			flush = 0;
+			link = 0;
+			if (rdata1 != rdata2) begin
+				npc = pc + (immSignExt << 2);		//D_pc + 4 == F_pc
+			end else begin
+				npc = pc + 32'd4;
+			end
 		end else if (mode == `pcBranch) begin
 			flush = 0;
 			link = 0;

@@ -41,13 +41,13 @@ module consumer(
 	 );
 	 
 	 always @(*) begin
-		if (opcode == `ori || opcode == `lui) begin
+		if (opcode == `ori || opcode == `lui || opcode == `andi || opcode == `addi) begin
 			//cal_i
 			A_1 = rs;
 			A_2 = 0;
 			Tuse_1 = 1;
 			Tuse_2 = 0;
-		end else if (opcode == `special && (func == `add || func == `sub)) begin
+		end else if (opcode == `special && (func != `jr)) begin		//注意这里可能因为指令集扩展而变化
 			//cal_r
 			A_1 = rs;
 			A_2 = rt;
@@ -71,7 +71,7 @@ module consumer(
 			A_2 = rt;
 			Tuse_1 = 1;
 			Tuse_2 = 2;					
-		end else if (opcode == `beq || opcode == `branch) begin
+		end else if (opcode == `beq || opcode == `branch || opcode == `bne) begin
 			//branch
 			A_1 = rs;
 			A_2 = rt;

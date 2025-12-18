@@ -1,4 +1,3 @@
-`include "global.v"
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
 // Engineer: 
@@ -18,6 +17,7 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
+`include "global.v"
 module consumer(
     input wire [31:0] instr,
     output reg [4:0] A_1,
@@ -41,13 +41,13 @@ module consumer(
 	 );
 	 
 	 always @(*) begin
-		if (opcode == `ori || opcode == `lui) begin
+		if (opcode == `ori || opcode == `lui || opcode == `andi || opcode == `addi || opcode == `addiu) begin
 			//cal_i
 			A_1 = rs;
 			A_2 = 0;
 			Tuse_1 = 1;
 			Tuse_2 = 0;
-		end else if (opcode == `special && (func == `add || func == `sub)) begin
+		end else if (opcode == `special && (func != `jr)) begin		//注意这里可能因为指令集扩展而变化
 			//cal_r
 			A_1 = rs;
 			A_2 = rt;
@@ -71,7 +71,7 @@ module consumer(
 			A_2 = rt;
 			Tuse_1 = 1;
 			Tuse_2 = 2;					
-		end else if (opcode == `beq || opcode == `branch) begin
+		end else if (opcode == `beq || opcode == `branch || opcode == `bne) begin
 			//branch
 			A_1 = rs;
 			A_2 = rt;
@@ -88,7 +88,13 @@ module consumer(
 			A_1 = rs;
 			A_2 = 0;
 			Tuse_1 = 0;
-			Tuse_2 = 0;				
+			Tuse_2 = 0;		
+		end else if (opcode == `cop0 && (rs == `mtc0)) begin
+			//mtc0	
+			A_1 = 0;
+			A_2 = rt;
+			Tuse_1 = 0;
+			Tuse_2 = 2;							
 		end else begin
 			A_1 = 0;
 			A_2 = 0;

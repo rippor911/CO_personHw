@@ -42,11 +42,11 @@ module producer(
 	 
 	 always @(*) begin
 		if (grfWE == 1) begin
-			if (opcode == `ori || opcode == `lui) begin
+			if (opcode == `ori || opcode == `lui || opcode == `andi || opcode == `addi) begin
 				//cal_i
 				A = rt;
 				Tnew = (Tnow < 1) ? 1 - Tnow : 0;
-			end else if (opcode == `special && (func == `add || func == `sub)) begin
+			end else if (opcode == `special && (func != `jr)) begin	//注意这里可能因为指令集扩展而变化
 				//cal_r
 				A = rd;
 				Tnew = (Tnow < 1) ? 1 - Tnow : 0;			

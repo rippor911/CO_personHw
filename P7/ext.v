@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date:    16:08:59 11/06/2025 
+// Create Date:    21:16:59 11/06/2025 
 // Design Name: 
-// Module Name:    im 
+// Module Name:    ext 
 // Project Name: 
 // Target Devices: 
 // Tool versions: 
@@ -18,20 +18,12 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
-module im(
-    input wire [31:0] adr,
-    output wire [31:0] instr
+module ext(
+    input wire [15:0] imm,
+    output wire [31:0] immSignExt,
+    output wire [31:0] immZeroExt
     );
-	 
-    reg [31:0] im_reg [0:4095];
-	 wire [31:0] id;
-	 
-	 initial begin
-        $readmemh("code.txt", im_reg);
-    end
-	 
-	 assign id = adr - 32'h00003000;
-	 
-	 assign instr = im_reg[id[31:2]];
 
+	assign immSignExt = {{16{imm[15:15]}}, imm};
+	assign immZeroExt = {16'd0, imm};
 endmodule

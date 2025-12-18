@@ -32,7 +32,8 @@ module controller(
     output wire [2:0] memWdataChoose,
     output wire grfWE,
     output wire memWE,
-	 output wire [2:0] npcMode
+	 output wire [2:0] npcMode,
+	 output wire [3:0] mdOp
     );
 	 
     wire [5:0] opcode = instr[31:26];
@@ -40,10 +41,10 @@ module controller(
 	 
 	 //type signal:
 	 wire instr_special = (opcode == `special);
-	 wire instr_calImm  = (opcode == `ori || opcode == `lui);
+	 wire instr_calImm  = (opcode == `ori || opcode == `lui  || opcode == `andi || opcode == `addi);
 	 wire instr_load    = (opcode == `lw  || opcode == `load || opcode == `lb || opcode == `lh);
 	 wire instr_save 	  = (opcode == `sw  || opcode == `sb   || opcode == `sh);
-	 wire instr_branch  = (opcode == `beq || opcode == `branch);
+	 wire instr_branch  = (opcode == `beq || opcode == `branch || opcode == `bne);
 	 wire instr_jump    = (opcode == `jal);
 	 
 	 wire all_link = (instr_jump);													//link in all cases
@@ -52,13 +53,21 @@ module controller(
 	 
 	 wire instr_sub = (instr_special & (func == `sub));
 	 
-	 wire instr_or  = opcode == `ori;
+	 wire instr_or  = (opcode == `ori  || (opcode == `special && func == `orr));
+	 
+	 wire instr_and = (opcode == `andi || (opcode == `special && func == `annd));
 	 
 	 wire instr_lui = opcode == `lui;
 	 
+	 wire instr_slt = (opcode == `special && func == `slt);
+	 
+	 wire instr_sltu = (opcode == `special && func == `sltu);
+	 
 	 //special zone:
-	 wire calRR = (opcode == `special & (func == `add || func == `sub));
+	 wire calRR = (opcode == `special && !(func == `jr));
 	 wire jump_register = (opcode == `special & (func == `jr));
+	 
+	 wire instr_md = (opcode == `special && ((func & 6'b111100) == 6'b011000));
 	 
 	 //choose:
     assign rd1Choose      = `rd1_rs;
@@ -78,13 +87,16 @@ module controller(
 							`A_rdata1;
 						
     assign BChoose = (pcfour) ? `B_four :
+							(instr_load | instr_save | (opcode == `addi)) ? `B_immSignExt :
 							(instr_calImm) ? `B_immZeroExt :
-							(instr_load | instr_save) ? `B_immSignExt :
 							`B_rdata2; // Default(includes add, sub, beq)						
 						
-    assign aluOp = (instr_sub) ? `aluSubu :
-                   (instr_or) ? `aluOr :
-                   (instr_lui) ? `aluLui :
+    assign aluOp = (instr_sub) 	? `aluSubu 	:
+                   (instr_or) 	? `aluOr 	:
+						 (instr_and) 	? `aluAnd	:
+                   (instr_lui) 	? `aluLui 	:
+						 (instr_slt)	? `aluSlt	:
+						 (instr_sltu)	? `aluSltu	:
                    `aluAddu; // Default: add, jr, jal, loads, stores	
 						 
     assign grfWE = (calRR | instr_calImm | instr_load | all_link);
@@ -96,6 +108,16 @@ module controller(
 							(instr_jump) ? `jmode				:
 							(opcode == `beq) ? `pcBeq			:
 							(opcode == `branch) ? `pcBranch	:
+							(opcode == `bne) ? `pcBne			:
 							`norm;
-						 
+	
+	assign mdOp = (opcode == `special && func == `mult) 	? `mdMult 	:
+					  (opcode == `special && func == `multu) 	? `mdMultu 	:
+					  (opcode == `special && func == `div) 	? `mdDiv 	:
+					  (opcode == `special && func == `divu) 	? `mdDivu 	:
+					  (opcode == `special && func == `mfhi) 	? `mdMfhi 	:
+					  (opcode == `special && func == `mflo) 	? `mdMflo 	:
+					  (opcode == `special && func == `mthi) 	? `mdMthi 	:
+					  (opcode == `special && func == `mtlo) 	? `mdMtlo 	:
+					  `mdNeg;
 endmodule

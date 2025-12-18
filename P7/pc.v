@@ -1,11 +1,10 @@
-`timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
 // Engineer: 
 // 
-// Create Date:    16:08:59 11/06/2025 
+// Create Date:    15:55:45 11/06/2025 
 // Design Name: 
-// Module Name:    im 
+// Module Name:    pc 
 // Project Name: 
 // Target Devices: 
 // Tool versions: 
@@ -18,20 +17,24 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
-module im(
-    input wire [31:0] adr,
-    output wire [31:0] instr
+`timescale 1ns / 1ps
+module pc(
+    input wire clk,
+    input wire reset,
+	 input wire En_low,
+    input wire [31:0] npc,
+    output reg [31:0] pc
     );
 	 
-    reg [31:0] im_reg [0:4095];
-	 wire [31:0] id;
-	 
-	 initial begin
-        $readmemh("code.txt", im_reg);
-    end
-	 
-	 assign id = adr - 32'h00003000;
-	 
-	 assign instr = im_reg[id[31:2]];
+	 always @(posedge clk) begin
+		if (reset) begin
+			pc <= 32'h00003000;
+		end else begin
+			if (En_low == 1'd0) begin
+				pc <= npc;
+			end
+		end
+	 end
+
 
 endmodule

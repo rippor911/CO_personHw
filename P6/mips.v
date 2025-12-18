@@ -5,8 +5,19 @@
  * 支持数据前推和冒险处理
  */
 module mips(
-    input wire clk,        // 时钟信号
-    input wire reset       // 同步复位信号
+    input wire clk,
+    input wire reset,
+    input wire [31:0] i_inst_rdata,
+    input wire [31:0] m_data_rdata,
+    output wire [31:0] i_inst_addr,
+    output wire [31:0] m_data_addr,
+    output wire [31:0] m_data_wdata,
+    output wire [3 :0] m_data_byteen,
+    output wire [31:0] m_inst_addr,
+    output wire w_grf_we,
+    output wire [4:0] w_grf_addr,
+    output wire [31:0] w_grf_wdata,
+    output wire [31:0] w_inst_addr
     );
 	 
     // ==================== 全局信号定义 ====================
@@ -21,6 +32,7 @@ module mips(
     wire clear;            // 流水线清除信号
     wire stall;            // 流水线暂停信号
     wire condition_link;   // 条件链接信号
+	 wire busy;					// 乘除槽忙碌信号
     
     // ==================== F阶段(取指)信号 ====================
     wire [31:0] npc;
@@ -67,14 +79,17 @@ module mips(
     // ALU操作数选择
     wire [2:0]  AChoose;           
     wire [2:0]  BChoose;           
-    wire [5:0]  aluOp;             
+    wire [5:0]  aluOp;
+	 wire [3:0]  mdOp;
     
     // 数据通路
     wire [31:0] E_rdata1;          
     wire [31:0] E_rdata2;          
     wire [31:0] D_E_rdata1;        
     wire [31:0] D_E_rdata2;        
-    wire [31:0] A, B;              
+    wire [31:0] A, B;
+	 wire [31:0] aluOut;
+	 wire [31:0] mdOut;
     wire [31:0] E_aluOut;          
     
     // 流水线寄存器输出
@@ -133,6 +148,8 @@ module mips(
 	 wire [31:0] W_rdata2;
     
      // ==================== 扩展信号 ====================
+	  
+	  wire start = (E_instr[31:26] == `special && ((E_instr[5:0] & 6'b111100) == 6'b011000)) ? 1 : 0;	// 乘除指令
 	 
 	 assign memWrite = (memWE == 0) 				 ? 0                                      :
 							 (M_instr[31:26] == `sw) ? 4'b1111 											:
@@ -179,6 +196,7 @@ module mips(
         .E_M_grfWE(E_M_grfWE),
         .M_W_grfWE(M_W_grfWE),
 		  .lr(lr),
+		  .busy(busy || start),
         .D_rdata1Choose(D_rdata1Choose),
         .D_rdata2Choose(D_rdata2Choose),
         .E_rdata1Choose(E_rdata1Choose),
@@ -223,10 +241,10 @@ module mips(
     /**
      * 指令存储器 - 读取指令
      */
-    im im(
-        .adr(F_pc),
-        .instr(F_instr)
-    );
+	 
+	 assign F_instr = i_inst_rdata;
+	 assign i_inst_addr = F_pc;
+	 
     
     /**
      * F->D流水线寄存器
@@ -302,6 +320,11 @@ module mips(
         .rdata1(grf_rdata1),     // 读数据1
         .rdata2(grf_rdata2)      // 读数据2
     );
+	 
+	 assign w_grf_we = W_grfWE;	// 写使能
+	 assign w_grf_addr = wt;		// 写地址
+	 assign w_grf_wdata = wdata;	// 写数据
+	 assign w_inst_addr = W_pc;	// 写操作时的PC(用于调试)
     
     /**
      * D阶段数据前推选择器
@@ -369,6 +392,7 @@ module mips(
      */
     controller E_ctrl(
         .instr(E_instr),
+		  .mdOp(mdOp),
         .AChoose(AChoose),       
         .BChoose(BChoose),       
         .aluOp(aluOp)            
@@ -421,8 +445,27 @@ module mips(
         .aluOp(aluOp),           // ALU操作码
         .A(A),                   // 输入A
         .B(B),                   // 输入B
-        .out(E_aluOut)           // 运算结果
+        .out(aluOut)           // 运算结果
     );
+	 
+	 md md(
+		.clk(clk),
+		.reset(reset),
+		.A(A),
+		.B(B),
+		.op(mdOp),
+		.busy(busy),
+		.out(mdOut)		
+	 );
+	 
+	 wire [2:0] aluOutChoose = mdOp == 0 ? 0 : 1;
+	 
+	 mux32 aluOutChooser(
+		.choose(aluOutChoose),
+		.input0(aluOut),
+		.input1(mdOut),
+		.out(E_aluOut)
+	 );
     
     /**
      * E->M流水线寄存器
@@ -496,16 +539,13 @@ module mips(
     /**
      * 数据存储器 - 读写数据内存
      */
-    mem mem(
-        .clk(clk),
-        .reset(reset),
-        .memAdr(memAdr),         // 内存地址
-        .memWrite(memWrite),     // 写使能及类型
-        .memWdata(memWdata),        // 写数据
-        .wPc(M_pc),              // 写操作时的PC(用于调试)
-        .memOut(memOut)        // 读数据
-    );
-    
+
+	 assign m_data_addr = memAdr;   	// 内存地址
+	 assign m_data_wdata = memWdata;	// 写数据
+	 assign m_data_byteen = memWrite;// 写使能及类型
+	 assign m_inst_addr = M_pc;		// 写操作时的PC(用于调试)
+    assign memOut = m_data_rdata;	// 读数据
+	 
     /**
      * M->W流水线寄存器
      */

@@ -45,7 +45,6 @@ module grf(
 		end else begin
 			if (WE == 1'b1 && wt != 5'd0) begin
 				register[wt] <= wdata;
-				$display("%d@%h: $%d <= %h", $time, wPc, wt, wdata);
 			end
 		end
 	 end

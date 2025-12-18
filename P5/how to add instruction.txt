@@ -1,0 +1,33 @@
+1. calcultaion
+
+global(opcode)
+
+controller(instr_calImm or calRR,aluOp)
+
+consumer(instr_calImm or calRR)
+
+producer(instr_calImm or calRR)
+
+alu(new op)
+
+
+2. branch
+
+global(opcode)
+
+npcUnit(cmp,link,flush,target)
+
+
+3.load
+
+global(opcode)
+
+controller()
+
+consumer(A_1,A_2)
+
+producer()
+
+hazard_ctrl(possibleload)
+
+mips(lr,memOut)
